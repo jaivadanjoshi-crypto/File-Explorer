@@ -1,9 +1,9 @@
 import streamlit as st
-
 import config
 from preprocessing.pdf_loader import load_and_split_pdf
 from preprocessing.doc_loader import load_and_split_docx
 from preprocessing.txt_loader import load_and_split_txt
+from preprocessing.excel_loader import load_and_split_excel  # Added Excel loader import
 from database.vector_store import build_vector_store
 from llm.rag_chain import build_rag_chain
 
@@ -26,9 +26,10 @@ col1, col2 = st.columns([0.85, 0.15], vertical_alignment="bottom")
 
 with col1:
     # STEP 2: LINK ROTATING VERSION VALUE TO WIDGET IDENTITY
+    # Added "xlsx" and "xls" to the allowed types array below
     uploaded_file = st.file_uploader(
         "Upload a document", 
-        type=["pdf", "docx", "txt"],
+        type=["pdf", "docx", "txt", "xlsx", "xls"],
         key=f"doc_uploader_v_{st.session_state['uploader_key_version']}"
     )
 
@@ -53,6 +54,8 @@ if uploaded_file is not None:
                 chunks = load_and_split_docx(uploaded_file)
             elif name.endswith(".txt"):
                 chunks = load_and_split_txt(uploaded_file)
+            elif name.endswith((".xlsx", ".xls")):  # Added routing condition for Excel files
+                chunks = load_and_split_excel(uploaded_file)
             else:
                 st.error("Unsupported file type.")
                 st.stop()
@@ -76,3 +79,4 @@ if uploaded_file is not None:
             st.write(result["answer"])
         else:
             st.error("Pipeline missing. Please upload your document again.")
+
