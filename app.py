@@ -10,6 +10,17 @@ from llm.rag_chain import build_rag_chain
 st.set_page_config(page_title="RAG Mini Project", page_icon="📄")
 st.title("📄 Document Q&A (RAG)")
 
+# --- ADDED: CLEAR SESSION BUTTON IN SIDEBAR ---
+with st.sidebar:
+    st.header("Controls")
+    if st.button("🗑️ Clear Session", use_container_width=True):
+        # Wipe all cached values in memory
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        # Force website to refresh with a completely fresh state
+        st.rerun()
+# ----------------------------------------------
+
 if not config.GROQ_API_KEY:
     st.error(
         "GROQ_API_KEY not found. Add it to your .env file (local) "
