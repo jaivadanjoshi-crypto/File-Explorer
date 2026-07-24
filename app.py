@@ -1,4 +1,4 @@
-pythonimport streamlit as st
+import streamlit as st
 
 import config
 from preprocessing.pdf_loader import load_and_split_pdf
@@ -10,16 +10,6 @@ from llm.rag_chain import build_rag_chain
 st.set_page_config(page_title="RAG Mini Project", page_icon="📄")
 st.title("📄 Document Q&A (RAG)")
 
-# --- FIXED: CRASH-PROOF CONTROL PANEL ---
-with st.sidebar:
-    st.header("Controls")
-    if st.button("🗑️ Clear Session", use_container_width=True):
-        # Clear out every state cleanly
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
-# ----------------------------------------
-
 if not config.GROQ_API_KEY:
     st.error(
         "GROQ_API_KEY not found. Add it to your .env file (local) "
@@ -27,7 +17,21 @@ if not config.GROQ_API_KEY:
     )
     st.stop()
 
-uploaded_file = st.file_uploader("Upload a document", type=["pdf", "docx", "txt"])
+# --- NEW: PLACED SIDE-BY-SIDE WITH UPLOAD BAR ---
+# Create 2 columns (85% width for file input, 15% width for the reset action)
+col1, col2 = st.columns([0.85, 0.15], vertical_alignment="bottom")
+
+with col1:
+    uploaded_file = st.file_uploader("Upload a document", type=["pdf", "docx", "txt"])
+
+with col2:
+    if st.button("🗑️ Clear", use_container_width=True):
+        # Wipe all cached values in memory safely
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        # Force website to refresh cleanly
+        st.rerun()
+# ------------------------------------------------
 
 if uploaded_file is not None:
     # Check if this specific file has already been indexed in this session
