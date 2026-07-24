@@ -1,31 +1,22 @@
 import os
-
+import streamlit as st
 from dotenv import load_dotenv
 
-# Load variables from a local .env file (used only when running locally).
+# Load local environment if running locally
 load_dotenv()
 
+# Check local environment first, then look into Streamlit Secrets
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-def _get_secret(name: str, default=None):
-    """Read a secret from the environment first, then Streamlit secrets.
-
-    Locally, values come from the .env file via os.getenv.
-    On Streamlit Community Cloud there is no .env file, so we fall back
-    to st.secrets, which is populated from Settings -> Secrets.
-    """
-    value = os.getenv(name)
-    if value:
-        return value
+if not GROQ_API_KEY:
     try:
-        import streamlit as st
-
-        return st.secrets[name]
+        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
     except Exception:
-        return default
+        GROQ_API_KEY = None
 
-
-# NOTE: the variable name must have NO leading/trailing spaces.
-GROQ_API_KEY = _get_secret("GROQ_API_KEY")
+# Inject it directly into the system climate so Langchain can find it instantly
+if GROQ_API_KEY:
+    os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 LLM_MODEL = "llama-3.3-70b-versatile"
