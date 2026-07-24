@@ -17,24 +17,33 @@ if not config.GROQ_API_KEY:
     )
     st.stop()
 
-# --- NEW: PLACED SIDE-BY-SIDE WITH UPLOAD BAR ---
-# Create 2 columns (85% width for file input, 15% width for the reset action)
+# --- STEP 1: INITIALIZE ROTATING WIDGET KEY COUNTER ---
+if "uploader_key_version" not in st.session_state:
+    st.session_state["uploader_key_version"] = 0
+# ------------------------------------------------------
+
 col1, col2 = st.columns([0.85, 0.15], vertical_alignment="bottom")
 
 with col1:
-    uploaded_file = st.file_uploader("Upload a document", type=["pdf", "docx", "txt"])
+    # STEP 2: LINK ROTATING VERSION VALUE TO WIDGET IDENTITY
+    uploaded_file = st.file_uploader(
+        "Upload a document", 
+        type=["pdf", "docx", "txt"],
+        key=f"doc_uploader_v_{st.session_state['uploader_key_version']}"
+    )
 
 with col2:
     if st.button("🗑️ Clear", use_container_width=True):
-        # Wipe all cached values in memory safely
+        # Clear out computational variables from system state memory
         for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        # Force website to refresh cleanly
+            if key != "uploader_key_version":  # Keep the counter variable intact
+                del st.session_state[key]
+        
+        # STEP 3: INCREMENT RE-RENDER COUNTER TO WIPE PHYSICAL FILE WIDGET
+        st.session_state["uploader_key_version"] += 1
         st.rerun()
-# ------------------------------------------------
 
 if uploaded_file is not None:
-    # Check if this specific file has already been indexed in this session
     if "current_file" not in st.session_state or st.session_state["current_file"] != uploaded_file.name:
         name = uploaded_file.name.lower()
         with st.spinner("Reading and indexing your document..."):
@@ -52,18 +61,15 @@ if uploaded_file is not None:
                 st.error("Couldn't extract any text from this file.")
                 st.stop()
 
-            # Save the pipeline directly into safe memory states
             st.session_state["vectorstore"] = build_vector_store(chunks)
             st.session_state["rag_chain"] = build_rag_chain(st.session_state["vectorstore"])
             st.session_state["current_file"] = uploaded_file.name
             st.session_state["chunk_count"] = len(chunks)
 
-    # UI status indicator using state tracking values
     st.success(f"Indexed {st.session_state['chunk_count']} chunks from {st.session_state['current_file']}. Ask a question below.")
 
     question = st.text_input("Your question")
     if question:
-        # Prevent calling a chain that hasn't finished compiling safely
         if "rag_chain" in st.session_state:
             with st.spinner("Thinking..."):
                 result = st.session_state["rag_chain"].invoke({"input": question})
