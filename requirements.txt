@@ -12,3 +12,5 @@ langchain-core
 langchain-text-splitters 
 langchain-classic
 torchvision
+pandas
+openpyxl
