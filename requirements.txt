@@ -14,3 +14,4 @@ langchain-classic
 torchvision
 pandas
 openpyxl
+pptx
