@@ -9,3 +9,5 @@ openpyxl
 python-dotenv
 python-pptx
 langchain-huggingface
+langchain-community
+faiss-cpu
