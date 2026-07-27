@@ -12,3 +12,5 @@ langchain-huggingface
 langchain-community
 faiss-cpu
 langchain-groq
+sentence-transformers
+torch
