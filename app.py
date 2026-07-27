@@ -74,13 +74,34 @@ if uploaded_file is not None:
 
     st.success(f"Indexed {st.session_state['chunk_count']} chunks from {st.session_state['current_file']}. Ask a question below.")
 
-    question = st.text_input("Your question")
-    if question:
-        if "rag_chain" in st.session_state:
-            with st.spinner("Thinking..."):
-                result = st.session_state["rag_chain"].invoke({"input": question})
-            st.write(result["answer"])
-        else:
-            st.error("Pipeline missing. Please upload your document again.")
+# --- FORCE DYNAMIC VERTICAL CHAT INPUT CONTAINER STYLING ---
+st.markdown(
+    """
+    <style>
+    /* Force the inner textarea to wrap text strings naturally and break lines vertically */
+    .stChatInputContainer textarea {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        overflow-y: auto !important;
+    }
+    /* Allow the layout structural wrapper box to grow fluidly in height */
+    .stChatInputContainer {
+        height: auto !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- DYNAMICALLY EXPANDING PROMPT PANEL ---
+question = st.chat_input("Your question")
+
+if question:
+    if "rag_chain" in st.session_state:
+        with st.spinner("Thinking..."):
+            result = st.session_state["rag_chain"].invoke({"input": question})
+        st.write(result["answer"])
+    else:
+        st.error("Pipeline missing. Please upload your document again.")
 
 
